@@ -33,7 +33,7 @@ public partial class Add_Habits : Migration
                 end_date = table.Column<DateOnly>(type: "date", nullable: true),
                 milestone_target = table.Column<int>(type: "integer", nullable: true),
                 milestone_current = table.Column<int>(type: "integer", nullable: true),
-                created_at_utc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                created_at_utc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 updated_at_utc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                 last_completed_at_utc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
             },

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DevHabit.Api.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250328145857_Add_Habits")]
+    [Migration("20250328195157_Add_Habits")]
     partial class Add_Habits
     {
         /// <inheritdoc />
@@ -33,7 +33,7 @@ namespace DevHabit.Api.Migrations.Application
                         .HasColumnType("character varying(500)")
                         .HasColumnName("id");
 
-                    b.Property<DateTime?>("CreatedAtUtc")
+                    b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at_utc");
 
