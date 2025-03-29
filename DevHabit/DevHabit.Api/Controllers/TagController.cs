@@ -45,73 +45,63 @@ public sealed class TagController(ApplicationDbContext dbContext) : ControllerBa
 
         return Ok(tag);
     }
-    
+
     [HttpPost]
     public async Task<ActionResult<TagDto>> CreateTag(
-        CreateTagDto createTagDto, 
-        IValidator<CreateTagDto> validator,
-        ProblemDetailsFactory problemDetailsFactory)
+        CreateTagDto createTagDto,
+        IValidator<CreateTagDto> validator)
     {
-        ValidationResult validationResult = await validator.ValidateAsync(createTagDto);
-        
-        if (!validationResult.IsValid)
-        {
-            ProblemDetails problem = problemDetailsFactory.CreateProblemDetails(
-                HttpContext,
-                StatusCodes.Status400BadRequest);
-            problem.Extensions.Add("errors", validationResult.ToDictionary());
-            return BadRequest(problem);
-        }
-        
+        await validator.ValidateAndThrowAsync(createTagDto);
+
         Tag tag = createTagDto.ToEntity();
-        
+
         if (await dbContext.Tags.AnyAsync(t => t.Name == tag.Name))
         {
             return Problem(
                 detail: $"Tag with name {tag.Name} already exists.",
                 statusCode: StatusCodes.Status409Conflict);
         }
-        
+
         dbContext.Tags.Add(tag);
-        
+
         await dbContext.SaveChangesAsync();
 
         TagDto tagDto = tag.ToDto();
-        
+
         return CreatedAtAction(nameof(GetTag), new { id = tag.Id }, tagDto);
     }
-    
+
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateTag(string id, [FromBody] UpdateTagDto updateTagDto)
     {
         Tag? tag = await dbContext.Tags.FirstOrDefaultAsync(h => h.Id == id);
-        
+
         if (tag is null)
         {
             return NotFound();
         }
-        
+
         tag.UpdateFromDto(updateTagDto);
-        
+
         await dbContext.SaveChangesAsync();
 
         return NoContent();
     }
-    
+
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteTag(string id)
     {
         Tag? tag = await dbContext.Tags.FirstOrDefaultAsync(h => h.Id == id);
-        
+
         if (tag is null)
         {
             return NotFound();
         }
-        
+
         dbContext.Tags.Remove(tag);
-        
+
         await dbContext.SaveChangesAsync();
-        
+
         return NoContent();
     }
 }
