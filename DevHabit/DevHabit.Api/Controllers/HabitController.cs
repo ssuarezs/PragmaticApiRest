@@ -1,6 +1,8 @@
 ﻿using DevHabit.Api.Database;
 using DevHabit.Api.DTOs.Habits;
 using DevHabit.Api.Entities;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +35,7 @@ public class HabitController(ApplicationDbContext dbContext) : ControllerBase
         HabitWithTagsDto? habit = await dbContext
             .Habits
             .Where(h => h.Id == id)
-            .Select(HabitQueries.ProjectToHabitWithTagsDto())
+            .Select(HabitQueries.ProjectToDtoWithTags())
             .FirstOrDefaultAsync();
 
         if (habit is null)
@@ -45,8 +47,17 @@ public class HabitController(ApplicationDbContext dbContext) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<HabitDto>> CreateHabit(CreateHabitDto createHabitDto)
+    public async Task<ActionResult<HabitDto>> CreateHabit(
+        CreateHabitDto createHabitDto,
+        IValidator<CreateHabitDto> validator)
     {
+        ValidationResult validationResult = await validator.ValidateAsync(createHabitDto);
+        
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.ToDictionary());
+        }
+        
         Habit habit = createHabitDto.ToEntity();
 
         dbContext.Habits.Add(habit);
