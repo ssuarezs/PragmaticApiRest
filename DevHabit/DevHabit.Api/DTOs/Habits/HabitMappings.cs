@@ -1,9 +1,37 @@
 ﻿using DevHabit.Api.Entities;
+using DevHabit.Api.Services.Sorting;
 
 namespace DevHabit.Api.DTOs.Habits;
 
 internal static class HabitMappings
 {
+    public static readonly SortMappingDefinition<HabitDto, Habit> SortMapping = new()
+    {
+        Mappings =
+        [
+            new SortMapping(nameof(HabitDto.Name), nameof(Habit.Name)),
+            new SortMapping(nameof(HabitDto.Description), nameof(Habit.Description)),
+            new SortMapping(nameof(HabitDto.Type), nameof(Habit.Type)),
+            new SortMapping(
+                $"{nameof(HabitDto.Frequency)}.{nameof(FrequencyDto.Type)}",
+                $"{nameof(Habit.Frequency)}.{nameof(Frequency.Type)}"),
+            new SortMapping(
+                $"{nameof(HabitDto.Frequency)}.{nameof(FrequencyDto.TimesPerPeriod)}",
+                $"{nameof(Habit.Frequency)}.{nameof(Frequency.TimesPerPeriod)}"),
+            new SortMapping(
+                $"{nameof(HabitDto.Target)}.{nameof(TargetDto.Value)}",
+                $"{nameof(Habit.Target)}.{nameof(Target.Value)}"),
+            new SortMapping(
+                $"{nameof(HabitDto.Target)}.{nameof(TargetDto.Unit)}",
+                $"{nameof(Habit.Target)}.{nameof(Target.Unit)}"),
+            new SortMapping(nameof(HabitDto.Status), nameof(Habit.Status)),
+            new SortMapping(nameof(HabitDto.EndDate), nameof(Habit.EndDate)),
+            new SortMapping(nameof(HabitDto.CreatedAtUtc), nameof(Habit.CreatedAtUtc)),
+            new SortMapping(nameof(HabitDto.UpdatedAtUtc), nameof(Habit.UpdatedAtUtc)),
+            new SortMapping(nameof(HabitDto.LastCompletedAtUtc), nameof(Habit.LastCompletedAtUtc))
+        ]
+    };
+
     public static HabitDto ToDto(this Habit habit)
     {
         return new HabitDto
@@ -67,7 +95,7 @@ internal static class HabitMappings
             CreatedAtUtc = DateTime.UtcNow,
         };
     }
-    
+
     public static void UpdateFromDto(this Habit habit, UpdateHabitDto dto)
     {
         // Update basic properties
@@ -75,28 +103,28 @@ internal static class HabitMappings
         habit.Description = dto.Description;
         habit.Type = dto.Type;
         habit.EndDate = dto.EndDate;
-        
+
         // Update Frequency
         habit.Frequency = new Frequency
         {
             Type = dto.Frequency.Type,
             TimesPerPeriod = dto.Frequency.TimesPerPeriod
         };
-        
+
         // Update Target
         habit.Target = new Target
         {
             Value = dto.Target.Value,
             Unit = dto.Target.Unit
         };
-        
+
         // Update milestone if provided
         if (dto.Milestone is not null)
         {
             habit.Milestone ??= new Milestone();
             habit.Milestone.Target = dto.Milestone.Target;
         }
-        
+
         habit.UpdatedAtUtc = DateTime.UtcNow;
     }
 }
