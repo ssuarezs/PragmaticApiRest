@@ -2,9 +2,7 @@
 using DevHabit.Api.DTOs.Tags;
 using DevHabit.Api.Entities;
 using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevHabit.Api.Controllers;
