@@ -380,6 +380,9 @@ dotnet_diagnostic.IDE0005.severity = none
 # IDE0008: Use explicit type
 dotnet_diagnostic.IDE0008.severity = none
 
+# IDE0040: Add accessibility modifiers
+dotnet_diagnostic.IDE0040.severity = none
+
 # IDE0046: Convert to conditional expression
 dotnet_diagnostic.IDE0046.severity = none
 
