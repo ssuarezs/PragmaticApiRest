@@ -367,3 +367,6 @@ FodyWeavers.xsd
 
 # Docker compose override
 docker-compose.generated.override.yml
+
+# Jetbrains IDE - .idea directory
+.idea/
