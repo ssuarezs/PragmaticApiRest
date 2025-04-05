@@ -55,21 +55,25 @@ public class HabitController(ApplicationDbContext dbContext, LinkService linkSer
             .Take(query.PageSize)
             .ToListAsync();
 
+        bool includeLinks = query.Accept == CustomMediaTypeNames.Application.HateoasJson;
         var paginationResult = new PaginationResult<ExpandoObject>
         {
             Items = dataShapingService.ShapeCollectionData(
                 habits,
                 query.Fields,
-                h => CreateLinksForHabit(h.Id, query.Fields)),
+                includeLinks ? h => CreateLinksForHabit(h.Id, query.Fields) : null),
             Page = query.Page,
             PageSize = query.PageSize,
             TotalCount = totalCount
         };
 
-        paginationResult.Links = CreateLinksForHabit(
-            query,
-            paginationResult.HasNextPage,
-            paginationResult.HasPreviousPage);
+        if (includeLinks)
+        {
+            paginationResult.Links = CreateLinksForHabit(
+                query,
+                paginationResult.HasNextPage,
+                paginationResult.HasPreviousPage);
+        }
 
         return Ok(paginationResult);
     }
@@ -78,6 +82,7 @@ public class HabitController(ApplicationDbContext dbContext, LinkService linkSer
     public async Task<ActionResult> GetHabit(
         string id,
         string? fields,
+        [FromHeader(Name = "Accept")] string? accept,
         DataShapingService dataShapingService)
     {
         if (!dataShapingService.Validate<HabitWithTagsDto>(fields))
@@ -100,8 +105,13 @@ public class HabitController(ApplicationDbContext dbContext, LinkService linkSer
 
         ExpandoObject shapedHabitDto = dataShapingService.ShapeData(habit, fields);
 
+        if (accept != CustomMediaTypeNames.Application.HateoasJson)
+        {
+            return Ok(shapedHabitDto);
+        }
+
         List<LinkDto> links = CreateLinksForHabit(id, fields);
-        
+
         shapedHabitDto.TryAdd("links", links);
 
         return Ok(shapedHabitDto);
@@ -109,6 +119,7 @@ public class HabitController(ApplicationDbContext dbContext, LinkService linkSer
 
     [HttpPost]
     public async Task<ActionResult<HabitDto>> CreateHabit(
+        [FromHeader(Name = "Accept")] string? accept,
         CreateHabitDto createHabitDto,
         IValidator<CreateHabitDto> validator)
     {
@@ -121,7 +132,11 @@ public class HabitController(ApplicationDbContext dbContext, LinkService linkSer
         await dbContext.SaveChangesAsync();
 
         HabitDto habitDto = habit.ToDto();
-        habitDto.Links = CreateLinksForHabit(habit.Id, null);
+
+        if (accept == CustomMediaTypeNames.Application.HateoasJson)
+        {
+            habitDto.Links = CreateLinksForHabit(habit.Id, null);
+        }
 
         return CreatedAtAction(nameof(GetHabit), new { id = habit.Id }, habitDto);
     }
@@ -232,9 +247,10 @@ public class HabitController(ApplicationDbContext dbContext, LinkService linkSer
                 status = parameters.Status,
             }));
         }
-        
+
         return links;
     }
+
     private List<LinkDto> CreateLinksForHabit(string id, string? fields)
     {
         List<LinkDto> links =
@@ -244,12 +260,11 @@ public class HabitController(ApplicationDbContext dbContext, LinkService linkSer
             linkService.Create(nameof(PatchHabit), "partial-update", HttpMethods.Patch, new { id }),
             linkService.Create(nameof(GetHabit), "delete", HttpMethods.Delete, new { id }),
             linkService.Create(
-                nameof(HabitTagsController.UpsertHabitTags), 
-                "upsert-tags", 
-                HttpMethods.Put, 
+                nameof(HabitTagsController.UpsertHabitTags),
+                "upsert-tags",
+                HttpMethods.Put,
                 new { habitId = id },
                 HabitTagsController.Name)
-            
         ];
         return links;
     }
